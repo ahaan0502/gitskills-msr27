@@ -1,0 +1,22 @@
+# Data never goes in git (13+ GB; origin-repo licenses apply to `content`)
+data/
+outputs/*.parquet
+outputs/*.duckdb
+*.parquet
+*.sqlite
+*.db
+*.zip
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+*.egg-info/
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+
+.venv*/

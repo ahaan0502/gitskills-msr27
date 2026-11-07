@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gitskills-msr27"
+version = "0.1.0"
+description = "Analysis pipeline for the MSR 2027 Mining Challenge (GitSkills)"
+requires-python = ">=3.10"
+dependencies = [
+    "duckdb>=1.0",
+    "pyarrow>=15",
+    "pandas>=2",
+    "tabulate>=0.9",
+    "pyyaml>=6",
+    "markdown-it-py>=3",
+    "huggingface_hub>=0.24",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
