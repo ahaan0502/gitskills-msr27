@@ -16,7 +16,9 @@ from markdown_it import MarkdownIt
 _MD = MarkdownIt("commonmark").enable("table")
 
 # Front matter must start at byte 0 (after optional BOM) with a '---' line.
-_FM_RE = re.compile(r"\A---[ \t]*\n(.*?)\n---[ \t]*(?:\n|\Z)", re.DOTALL)
+_FM_RE = re.compile(r"\A---[ \t]*\n(.*?)\n-{3,}[ \t]*(?:\n|\Z)", re.DOTALL)
+_FM_RAW_RE = re.compile(r"\A---[ \t]*\r?\n(.*?)\r?\n-{3,}[ \t]*(?:\r?\n|\Z)(.*)\Z", re.DOTALL)
+_FM_FIELD_RE = re.compile(r"(?m)^(name|description)[ \t]*:[ \t]*([^\r\n]*)[ \t]*$")
 
 _YamlLoader = getattr(yaml, "CSafeLoader", yaml.SafeLoader)
 
@@ -34,6 +36,23 @@ def _split_frontmatter(text: str) -> tuple[str | None, str]:
     return m.group(1), text[m.end():]
 
 
+def _set_spec_valid(rec: dict[str, Any]) -> None:
+    rec["spec_valid"] = bool(
+        isinstance(rec["fm_name"], str)
+        and rec["fm_name"].strip()
+        and isinstance(rec["fm_description"], str)
+        and rec["fm_description"].strip()
+    )
+
+
+def _recover_frontmatter_fields(raw: str, rec: dict[str, Any]) -> None:
+    for match in _FM_FIELD_RE.finditer(raw):
+        value = match.group(2).strip()
+        if value and len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+            value = value[1:-1]
+        rec[f"fm_{match.group(1)}"] = value or None
+
+
 def norm_hash(body: str) -> str:
     """Hash of the body with whitespace collapsed and case folded.
 
@@ -49,6 +68,8 @@ def parse_skill(content: str | None) -> dict[str, Any]:
         "is_symlink_like": False,
         "has_frontmatter": False,
         "frontmatter_valid": False,
+        "spec_valid": False,
+        "fm_recovered": False,
         "fm_keys": [],
         "fm_name": None,
         "fm_description": None,
@@ -70,6 +91,10 @@ def parse_skill(content: str | None) -> dict[str, Any]:
         rec["is_empty"] = True
         return rec
 
+    # Keep parsing normalized, but retain CR characters in the published body length.
+    # The dataset's body_chars is measured on the original body, including CRLF bytes.
+    raw_match = _FM_RAW_RE.match(content)
+    original_body_crs = raw_match.group(2).count("\r") if raw_match else content.count("\r")
     text = _normalize(content)
 
     # Symlink skills store the link target path as their whole content.
@@ -90,12 +115,15 @@ def parse_skill(content: str | None) -> dict[str, Any]:
                 name, desc = data.get("name"), data.get("description")
                 rec["fm_name"] = None if name is None else str(name)
                 rec["fm_description"] = None if desc is None else str(desc)
+                _set_spec_valid(rec)
             else:
                 rec["parse_error"] = "frontmatter_not_a_mapping"
         except yaml.YAMLError:
             rec["parse_error"] = "frontmatter_yaml_error"
+            rec["fm_recovered"] = True
+            _recover_frontmatter_fields(fm_raw, rec)
 
-    rec["body_chars"] = len(body)
+    rec["body_chars"] = len(body) + original_body_crs
     rec["body_lines"] = body.count("\n") + (1 if body and not body.endswith("\n") else 0)
     rec["body_words"] = len(body.split())
     rec["norm_hash"] = norm_hash(body)

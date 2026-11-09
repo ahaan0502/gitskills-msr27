@@ -16,6 +16,7 @@ Examples:
 from __future__ import annotations
 
 import argparse
+import shutil
 import sys
 from pathlib import Path
 
@@ -38,7 +39,7 @@ def main() -> None:
     print(f"Dataset {HF_REPO_ID} @ {revision}")
 
     args.out.mkdir(parents=True, exist_ok=True)
-    patterns = [f"{t}/*" for t in args.tables]
+    patterns = [f"data/{t}/*" for t in args.tables]
     path = snapshot_download(
         repo_id=HF_REPO_ID,
         repo_type="dataset",
@@ -46,6 +47,20 @@ def main() -> None:
         allow_patterns=patterns + ["README.md"],
         local_dir=args.out,
     )
+    # The HF repository keeps tables under data/<table>/, while the local
+    # pipeline intentionally uses <out>/<table>/ to match the DuckDB globs.
+    hf_data = args.out / "data"
+    for table in args.tables:
+        src_dir = hf_data / table
+        dst_dir = args.out / table
+        if not src_dir.exists():
+            continue
+        dst_dir.mkdir(parents=True, exist_ok=True)
+        for src in src_dir.iterdir():
+            shutil.move(str(src), str(dst_dir / src.name))
+        src_dir.rmdir()
+    if hf_data.exists() and not any(hf_data.iterdir()):
+        hf_data.rmdir()
     (args.out / "REVISION.txt").write_text(f"{HF_REPO_ID}\n{revision}\ntables: {' '.join(args.tables)}\n")
     print(f"Done -> {path}")
     print("Next: python scripts/01_date_audit.py")

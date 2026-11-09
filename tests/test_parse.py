@@ -27,7 +27,7 @@ Done.
 
 def test_basic_frontmatter_and_structure():
     r = parse_skill(BASIC)
-    assert r["frontmatter_valid"] and r["has_frontmatter"]
+    assert r["frontmatter_valid"] and r["spec_valid"] and r["has_frontmatter"]
     assert r["fm_name"] == "pdf-tools"
     assert r["fm_description"].startswith("Work with PDF")
     assert r["fm_keys"] == ["description", "license", "name"]
@@ -66,6 +66,25 @@ def test_broken_yaml_reported_not_raised():
 def test_frontmatter_not_mapping():
     r = parse_skill("---\n- a\n- b\n---\nBody\n")
     assert r["parse_error"] == "frontmatter_not_a_mapping"
+
+
+def test_spec_valid_requires_nonempty_name_and_description():
+    r = parse_skill("---\nname: x\ndescription: \n---\nBody\n")
+    assert r["frontmatter_valid"] and not r["spec_valid"]
+
+
+def test_frontmatter_closing_fence_accepts_three_or_more_dashes():
+    r = parse_skill("---\nname: x\ndescription: y\n------\nBody\n")
+    assert r["frontmatter_valid"] and r["spec_valid"]
+    assert r["body_chars"] == len("Body\n")
+
+
+def test_yaml_error_recovers_name_and_description_without_validating_frontmatter():
+    r = parse_skill("---\nname: recovered\ndescription: useful\nbad: [\n---\nBody\n")
+    assert not r["frontmatter_valid"] and r["fm_recovered"]
+    assert not r["spec_valid"]
+    assert r["fm_name"] == "recovered"
+    assert r["fm_description"] == "useful"
 
 
 def test_crlf_and_bom():
