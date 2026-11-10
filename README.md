@@ -1,52 +1,103 @@
-# gitskills-msr27
+# GitSkills MSR 2027 Mining Challenge
 
-Analysis pipeline for the MSR 2027 Mining Challenge, GitSkills dataset
-(Destefanis et al., [arXiv:2608.10906](https://arxiv.org/abs/2608.10906)).
+CS 520 project repository for studying agent skill files mined from GitHub. The project uses the GitSkills dataset and follows the staged experiment plan in the project-plan PDF. The repository contains code and pushable documentation; the dataset and large generated artifacts are downloaded locally and ignored.
 
-**This repo contains code only.** The dataset (13+ GB) is downloaded separately and is git-ignored.
-Cite the dataset version you use (Zenodo DOI 10.5281/zenodo.21875637); `scripts/00_download.py`
-records the exact Hugging Face revision in `data/raw/REVISION.txt`.
+## Project goals
 
-## Layout
+The project aims to build a reproducible empirical account of agent skills as software artifacts. The planned analysis examines how skills are authored and organized, how they vary across repositories and time, how often they are copied or templated, what languages they use, and how their wording, structure, semantics, and repository integration can be studied without conflating duplicate occurrences with distinct content.
 
-```
-gitskills-msr27/
-├── README.md
-├── pyproject.toml          # dependencies (pip install -e ".[dev]")
-├── .gitignore              # data/, *.parquet, *.sqlite are never committed
-├── data/                   # (git-ignored) raw Parquet + GitHub sample
-│   ├── raw/                #   Hugging Face mirror, one folder per table
-│   └── sample/             #   277 MB SQLite sample for fast development
-├── outputs/                # (git-ignored for big files) derived tables and reports
-├── scripts/
-│   ├── 00_download.py      # fetch tables from Hugging Face, pin revision
-│   └── 01_date_audit.py    # E0 Gate A: what dates exist, for how much data
-├── src/gitskills/
-│   ├── config.py           # paths and constants
-│   └── parse.py            # SKILL.md -> record (front matter, headings, code, prose)
-├── tests/
-│   └── test_parse.py       # golden/edge-case tests for the parser
-└── docs/                   # plan, decisions, E0 report (add as you go)
-```
+The workflow is deliberately staged:
 
-Planned next (not yet written): `02_build_skills.py` (parse all distinct contents into
-`skills.parquet`), `03_flags.py` (catalog/template/bulk-repo flags), `04_validate.py`
-(agreement with dataset's own parsed fields), then E1 onward.
+- E0 establishes the dataset snapshot, parser parity, date-coverage audit, distinct-content table, and reusable repository/content signals.
+- E1 measures the natural-language distribution of descriptions, body prose, and paragraphs, including cohort, copy-frequency, and repository-flag sensitivities.
+- E2-E6 are reserved for the later project-plan analyses of skill structure, reuse/convergence, phrasing or semantic patterns, and repository/integration effects. They have not been started.
 
-## Setup
+## Research questions
+
+The project plan is organized around these questions:
+
+1. What kinds of agent skills are present in the GitSkills corpus, and how are they distributed across repositories and time?
+2. How much of the observed corpus is distinct content versus copied, templated, catalog-like, or bulk-repository content?
+3. What languages appear in skill descriptions and bodies, and do language shares change across the dated cohorts?
+4. Do descriptions and body prose use the same language, and how often is skill content mixed-language?
+5. How do skills vary in their structure, wording, and semantic content, and what forms of convergence or reuse can be measured?
+6. How are skills integrated into repositories and agent workflows, and what repository context is associated with their distribution or evolution?
+
+The exact hypotheses, operational definitions, and scope limits for each experiment are documented in [docs/experiments](docs/experiments/). Measured results are documented in [docs/results](docs/results/).
+
+## Dataset
+
+- Dataset: GitSkills, a corpus of agent `SKILL.md` files mined from GitHub.
+- Dataset mirror: `mvaccargiu/gitskills` on Hugging Face.
+- Snapshot used here: revision `ebab17454a7c236f8f26b183567f1a126f42e3f8`.
+- Local sample: a public SQLite sample used for fast development and parser validation.
+- Full tables used in E0: `artifacts`, `repos`, and `mining_runs`; `artifact_siblings` was skipped for the full download at this stage.
+- Primary E0/E1 unit: representative distinct contents (`dedup_primary = 1`), identified by `file_sha`.
+
+The full snapshot contains about 1.88 million representative contents. Only representative rows have text and commit history. Date history is uneven across location classes, so dated cohort analyses are reported as a restricted population rather than as a complete census.
+
+## Technology and libraries
+
+The pipeline uses:
+
+- Python 3.10 or newer.
+- DuckDB for streaming Parquet queries, joins, aggregation, and memory-bounded processing.
+- PyArrow for Parquet input/output and streaming batch operations.
+- pandas for compact tabular summaries and validation tables.
+- PyYAML for front-matter parsing.
+- markdown-it-py for Markdown block parsing and paragraph reconstruction.
+- lingua-language-detector 2.2.0 for multilingual detection in E1, using bundled models and 75 supported languages.
+- huggingface_hub for downloading the pinned dataset mirror.
+- pytest for parser and regression tests.
+- Standard-library multiprocessing support for large representative-level parsing.
+
+## Repository tools and pipeline
+
+Important scripts include:
+
+- `scripts/00_download.py` - downloads the pinned Hugging Face tables and records the revision.
+- `scripts/00b_sample_to_parquet.py` - converts the SQLite sample into the mirror's per-table Parquet layout.
+- `scripts/01_date_audit.py` - runs E0 Gate A date coverage and cohort audits.
+- `scripts/02_build_skills.py` - parses one representative per distinct content hash into the derived skills table.
+- `scripts/03_flags.py` - creates separate catalog, template, bulk-repository, and deterministic repository-rank signals.
+- `scripts/04_validate_parser.py` - compares parser output against the dataset's own parsed fields.
+- `scripts/05_e1_detect_language.py` - detects description, body, and paragraph languages.
+- `scripts/06_e1_overall_language.py` - computes overall language shares.
+- `scripts/07_e1_cohort_language.py` - computes cohort-by-language shares.
+- `scripts/08_e1_description_body_agreement.py` - computes agreement and the description/body matrix.
+- `scripts/09_e1_sensitivities.py` - computes copy-inclusive and E0-flag sensitivity analyses.
+- `scripts/10_e1_validate_detector.py` - creates and scores the stratified reference-label validation sample.
+
+The parser implementation is in `src/gitskills/parse.py`, configuration is in `src/gitskills/config.py`, and parser tests are in `tests/test_parse.py`.
+
+## Documentation and experiment status
+
+| Experiment | Status | Documentation |
+| --- | --- | --- |
+| E0 - data preparation | Complete | [methodology](docs/experiments/E0.md), [results](docs/results/E0-results.md) |
+| E1 - natural-language distribution | Complete | [methodology](docs/experiments/E1.md), [results](docs/results/E1-results.md) |
+| E2 | Not started | [methodology](docs/experiments/E2.md), [results](docs/results/E2-results.md) |
+| E3 | Not started | [methodology](docs/experiments/E3.md), [results](docs/results/E3-results.md) |
+| E4 | Not started | [methodology](docs/experiments/E4.md), [results](docs/results/E4-results.md) |
+| E5 | Not started | [methodology](docs/experiments/E5.md), [results](docs/results/E5-results.md) |
+| E6 | Not started | [methodology](docs/experiments/E6.md), [results](docs/results/E6-results.md) |
+
+## Setup and reproducibility
 
 ```bash
-python -m venv .venv && source .venv/bin/activate     # Windows: .venv\Scripts\activate
+python -m venv .venv
+source .venv/bin/activate                 # Windows: .venv\\Scripts\\activate
 pip install -e ".[dev]"
-pytest                                                # parser tests should all pass
-python scripts/00_download.py                         # artifacts + repos + mining_runs
-python scripts/01_date_audit.py                       # writes outputs/date_audit/
+pytest
+python scripts/00_download.py
+python scripts/01_date_audit.py
 ```
 
-## Notes
+The detailed E0 and E1 command sequences are recorded in their methodology documents. Generated files are written under `data/` and `outputs/` and are intentionally not part of the repository.
 
-- Representative rows (`dedup_primary = 1`) are the only ones with text and commit history;
-  all date analyses use them. See `outputs/date_audit/` for coverage.
-- Do not commit dataset content. Origin-repo licenses apply to the `content` field.
-- Submission is double-anonymous: do not put names in a public repo before review
-  (use https://anonymous.4open.science/ if you share it).
+## Data, licensing, and anonymity safeguards
+
+- Never commit anything under `data/` or `outputs/`, including Parquet, SQLite, ZIP, or other generated database files.
+- The raw dataset's origin-repository licenses apply to downloaded content.
+- Do not add author, contributor, repository-owner, or other identifying names to the double-anonymous repository or paper materials.
+- Keep exact dataset revisions and methodological decisions in committed documentation so results remain reproducible without committing the data itself.
