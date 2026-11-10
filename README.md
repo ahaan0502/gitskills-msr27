@@ -10,7 +10,8 @@ The workflow is deliberately staged:
 
 - E0 establishes the dataset snapshot, parser parity, date-coverage audit, distinct-content table, and reusable repository/content signals.
 - E1 measures the natural-language distribution of descriptions, body prose, and paragraphs, including cohort, copy-frequency, and repository-flag sensitivities.
-- E2-E6 are reserved for the later project-plan analyses of skill structure, reuse/convergence, phrasing or semantic patterns, and repository/integration effects. They have not been started.
+- E2 estimates explicit agent authorship and maintenance signals, separately for creation and later observed events, with history-coverage and repository-concentration sensitivities.
+- E3-E6 are reserved for the later project-plan analyses of skill structure, reuse/convergence, phrasing or semantic patterns, and repository/integration effects. They have not been started.
 
 ## Research questions
 
@@ -21,7 +22,8 @@ The project plan is organized around these questions:
 3. What languages appear in skill descriptions and bodies, and do language shares change across the dated cohorts?
 4. Do descriptions and body prose use the same language, and how often is skill content mixed-language?
 5. How do skills vary in their structure, wording, and semantic content, and what forms of convergence or reuse can be measured?
-6. How are skills integrated into repositories and agent workflows, and what repository context is associated with their distribution or evolution?
+6. What lower-bound share of distinct skills shows explicit agent involvement at creation or maintenance, and how sensitive is that result to incomplete history and repository concentration?
+7. How are skills integrated into repositories and agent workflows, and what repository context is associated with their distribution or evolution?
 
 The exact hypotheses, operational definitions, and scope limits for each experiment are documented in [docs/experiments](docs/experiments/). Measured results are documented in [docs/results](docs/results/).
 
@@ -67,6 +69,12 @@ Important scripts include:
 - `scripts/08_e1_description_body_agreement.py` - computes agreement and the description/body matrix.
 - `scripts/09_e1_sensitivities.py` - computes copy-inclusive and E0-flag sensitivity analyses.
 - `scripts/10_e1_validate_detector.py` - creates and scores the stratified reference-label validation sample.
+- `scripts/11_e2_history_inventory.py` - inventories history availability and metadata fields for E2.
+- `scripts/12_e2_build_evidence.py` - builds anonymized first/last authorship evidence.
+- `scripts/13_e2_classify_outcomes.py` - creates representative-level explicit-marker outcomes.
+- `scripts/14_e2_marker_validation_sample.py` and `scripts/15_e2_review_labels.py` - create and review the anonymized E2 validation sample.
+- `scripts/16_e2_estimate_shares.py` - computes creation and maintenance shares by required strata.
+- `scripts/17_e2_robustness.py` and `scripts/18_e2_finalize.py` - run E2 sensitivities and write the final range/limitation inventory.
 
 The parser implementation is in `src/gitskills/parse.py`, configuration is in `src/gitskills/config.py`, and parser tests are in `tests/test_parse.py`.
 
@@ -76,7 +84,7 @@ The parser implementation is in `src/gitskills/parse.py`, configuration is in `s
 | --- | --- | --- |
 | E0 - data preparation | Complete | [methodology](docs/experiments/E0.md), [results](docs/results/E0-results.md) |
 | E1 - natural-language distribution | Complete | [methodology](docs/experiments/E1.md), [results](docs/results/E1-results.md) |
-| E2 | Not started | [methodology](docs/experiments/E2.md), [results](docs/results/E2-results.md) |
+| E2 - agent authorship and maintenance | Complete with empirical-upper-bound limitation | [methodology](docs/experiments/E2.md), [results](docs/results/E2-results.md) |
 | E3 | Not started | [methodology](docs/experiments/E3.md), [results](docs/results/E3-results.md) |
 | E4 | Not started | [methodology](docs/experiments/E4.md), [results](docs/results/E4-results.md) |
 | E5 | Not started | [methodology](docs/experiments/E5.md), [results](docs/results/E5-results.md) |
