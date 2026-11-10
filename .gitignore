@@ -1,5 +1,6 @@
 # Data never goes in git (13+ GB; origin-repo licenses apply to `content`)
 data/
+outputs/
 outputs/*.parquet
 outputs/*.duckdb
 *.parquet
