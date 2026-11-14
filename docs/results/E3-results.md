@@ -1,3 +1,29 @@
 # E3 results
 
-Status: not started. No results have been generated.
+Status: E3-r01-primary complete; Steps 1-8 complete.
+
+Run records are maintained separately in [the run registry](runs/RUN-REGISTRY.md). The initial planned run is [E3-r01-primary](runs/E3-r01-primary.md); future E6 reruns will receive distinct run IDs before their results are compiled here.
+
+The Step 1 inventory and population freeze are recorded in the [E3-r01-primary run record](runs/E3-r01-primary.md). After earlier validation identified parser-splitting, inline-code, and metadata issues, the structural module was corrected and regenerated. Step 3 passes all parser-feature and E0 metadata invariants for 1,877,981 rows. Step 4 produced the overall structural distributions, and Step 5 produced descriptive trends across the ten E0-valid cohorts.
+
+Step 5 shows a non-monotonic decline in median body size from 7,935 characters in 2025-10 to 5,141 in 2026-07, while median headings decline from 21 to 9. Heading prevalence declines from 98.972% to 96.921%, multiple-heading prevalence from 98.340% to 93.997%, and ordered-list prevalence from 78.024% to 66.398%. Table prevalence rises from 19.526% to 40.555%, code-block prevalence declines from 85.059% to 66.441%, and inline-code prevalence rises from 82.530% to 91.057%.
+
+Template entropy rises from 10.190 bits in 2025-10 to 14.945 bits in 2026-07, but 2026-02 has an anomalous top-template share of 14.220%. This concentration spike is retained for Step 7 robustness analysis rather than interpreted as general convergence. July is partial and cohort sizes differ substantially.
+
+Step 6 tested copy-inclusive occurrences and distinct-content sensitivities. The primary distinct population contains 1,877,981 representatives; copy-inclusive analysis contains 3,797,117 artifact occurrences representing the same 1,877,981 distinct contents. Excluding catalog, template, and bulk-repository signals together leaves 906,970 representatives; restricting each repository to its first 50 ranked representatives leaves 1,198,436. The primary cohort pattern persists under these controls: median body size falls from 7,935 to 5,141 characters, and median headings from 21 to 9. The combined-exclusion sensitivity falls from 7,539 to 4,953 characters and 20 to 8 headings; the repository-cap sensitivity falls from 7,834 to 5,158 characters and 21 to 8 headings.
+
+The February 2026 template-concentration anomaly is not removed by controls: its primary top-template share is 14.247%, compared with 0.281% in July. However, the combined-exclusion and repository-cap sensitivities have July top-template shares of 0.145% and 0.142%, respectively, so the anomaly is concentrated in the affected cohort rather than a general consequence of high-volume repositories or flagged content. Copy-inclusive weighting changes levels (median body size 9,136 to 6,434 characters and median headings 23 to 11) but preserves the direction of the cohort shift. Location strata differ in levels, especially code-block prevalence, so location remains a descriptive sensitivity rather than a pooled adjustment.
+
+Step 7 measured full-cohort template concentration and effective template counts, then estimated cross-cohort structural similarity using equal deterministic samples of 25 representatives per cohort (45 cohort pairs, 625 representative pairs per comparison). Effective template count rises from 1,168 in 2025-10 to 31,534 in 2026-07, while the February 2026 cohort is an exception at 10,590 and has a 14.220% top-template share. Across the 45 pair comparisons, mean feature-set Jaccard similarity is 0.581 and mean block-sequence similarity is 0.328; the 2025-10 versus 2026-07 comparison is 0.594 and 0.316, respectively. Exact template matches are effectively absent in the sample (0.014% across all pair comparisons), indicating that shared coarse structure does not imply identical structural templates.
+
+The pairwise results are descriptive and sample-based, not a population-wide estimate. The sample is deterministic and equal-sized to prevent cohort size from dominating comparisons; the concentration and entropy measures use all dated representatives.
+
+## Step 8 - structural convergence interpretation and limitations
+
+E3 does not support a simple claim that later skills converge on one increasingly dominant structural format. Later cohorts are generally shorter and contain fewer headings, but template entropy and effective template counts generally increase, and exact template matches are rare. The results are better characterized as a stable set of recurring structural features with a broadening long tail of templates, plus cohort-specific concentration anomalies. The February 2026 spike requires the planned E6 and sensitivity follow-up rather than a causal interpretation.
+
+The structural results are limited by the dated-cohort coverage established in E0, the partial July 2026 cohort, unequal cohort sizes, copied/template/bulk-repository reuse, and Markdown/parser ambiguities. Parser-error and symlink-like records remain explicitly represented in the feature table, while copy-inclusive and flag/repository sensitivities show how weighting changes levels. The pairwise similarity analysis is a deterministic 25-per-cohort sample and should not be treated as a population-wide similarity estimator. Structural similarity does not establish shared authorship, common provenance, semantic equivalence, or causal influence.
+
+E3 acceptance criteria are satisfied: the feature version is tested and validated; denominators reconcile to E0; size, heading, section, block, front-matter, template, concentration, entropy, and similarity measures are reported separately; reuse and repository sensitivities are documented; July and parser limitations are explicit; and committed documentation contains no raw skill text or identifying metadata. E6 reruns must retain `e3-structure-v1`, stable `file_sha` joins, minimum-cell rules, and separate run IDs.
+
+E3-r01-primary is complete. E4 has not started.
